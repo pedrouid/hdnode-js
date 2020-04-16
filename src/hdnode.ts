@@ -1,4 +1,4 @@
-import { randomBytes } from 'eccrypto-js';
+import { randomBytes, bufferToHex } from 'eccrypto-js';
 
 import HDKey from './lib/hdkey';
 import { entropyToMnemonic } from './lib/bip39';
@@ -18,32 +18,47 @@ export class HDNode {
     return new HDNode(new HDKey().fromExtendedKey(base58Key));
   }
 
-  constructor(private readonly hdKey?: HDKey) {}
+  constructor(private readonly hdKey: HDKey) {}
 
   get xpub(): string {
-    return this.publicExtendedKey();
+    const xpub = this.publicExtendedKey();
+    return xpub;
   }
 
   get xpriv(): string {
-    return this.privateExtendedKey();
+    const xpriv = this.privateExtendedKey();
+    return xpriv;
+  }
+
+  get publicKey(): string {
+    return bufferToHex(this.hdKey.publicKey, true);
+  }
+
+  get privateKey(): string {
+    this.assertPrivateExtendedKey();
+    return bufferToHex(this.hdKey.privateKey, true);
+  }
+
+  public assertPrivateExtendedKey(): void {
+    if (!this.hdKey.privateExtendedKey) {
+      throw new Error(ERROR_PUBLIC_KEY_ONLY);
+    }
   }
 
   public privateExtendedKey(): string {
-    if (!this.hdKey?.privateExtendedKey) {
-      throw new Error(ERROR_PUBLIC_KEY_ONLY);
-    }
-    return this.hdKey?.privateExtendedKey;
+    this.assertPrivateExtendedKey();
+    return this.hdKey.privateExtendedKey;
   }
 
   public publicExtendedKey(): string {
-    return this.hdKey?.publicExtendedKey;
+    return this.hdKey.publicExtendedKey;
   }
 
   public derivePath(path: string): HDNode {
-    return new HDNode(this.hdKey?.derive(path));
+    return new HDNode(this.hdKey.derive(path));
   }
 
   public deriveChild(index: number): HDNode {
-    return new HDNode(this.hdKey?.deriveChild(index));
+    return new HDNode(this.hdKey.deriveChild(index));
   }
 }

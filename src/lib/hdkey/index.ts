@@ -2,14 +2,10 @@ import assert from 'assert';
 import bs58check from 'bs58check';
 import secp256k1 from 'secp256k1';
 import {
-  isNode,
-  nodeRipemd160,
-  nodeSha256,
-  fallbackRipemd160,
-  fallbackSha256,
-  nodeHmacSha512Sign,
-  fallbackHmacSha512Sign,
   randomBytes,
+  ripemd160Sync,
+  sha256Sync,
+  hmacSha512SignSync,
 } from 'eccrypto-js';
 
 import {
@@ -34,20 +30,6 @@ const LEN = 78;
 
 // Bitcoin hardcoded by default, can use package `coininfo` for others
 const BITCOIN_VERSIONS = { private: 0x0488ade4, public: 0x0488b21e };
-
-function hash160(buf) {
-  if (isNode()) {
-    return nodeRipemd160(nodeSha256(buf));
-  }
-  return fallbackRipemd160(fallbackSha256(buf));
-}
-
-function createHmac512Sync(key, data) {
-  if (isNode()) {
-    return nodeHmacSha512Sign(key, data);
-  }
-  return fallbackHmacSha512Sign(key, data);
-}
 
 class HDKey {
   public versions: any;
@@ -94,7 +76,7 @@ class HDKey {
 
     this._privateKey = value;
     this._publicKey = secp256k1.publicKeyCreate(value, true);
-    this._identifier = hash160(this.publicKey);
+    this._identifier = ripemd160Sync(sha256Sync(this.publicKey));
     this._fingerprint = this._identifier.slice(0, 4).readUInt32BE(0);
   }
 
@@ -111,7 +93,7 @@ class HDKey {
     assert(secp256k1.publicKeyVerify(value) === true, ERROR_INVALID_PUBLIC_KEY);
 
     this._publicKey = secp256k1.publicKeyConvert(value, true); // force compressed point
-    this._identifier = hash160(this.publicKey);
+    this._identifier = ripemd160Sync(sha256Sync(this.publicKey));
     this._fingerprint = this._identifier.slice(0, 4).readUInt32BE(0);
     this._privateKey = null;
   }
@@ -190,7 +172,7 @@ class HDKey {
       data = Buffer.concat([this.publicKey, indexBuffer]);
     }
 
-    let I = createHmac512Sync(this.chainCode, data);
+    let I = hmacSha512SignSync(this.chainCode, data);
     let IL = I.slice(0, 32);
     let IR = I.slice(32);
 
@@ -228,7 +210,7 @@ class HDKey {
   }
 
   public fromMasterSeed(seedBuffer, versions?: any) {
-    let I = createHmac512Sync(MASTER_SECRET, seedBuffer);
+    let I = hmacSha512SignSync(MASTER_SECRET, seedBuffer);
     let IL = I.slice(0, 32);
     let IR = I.slice(32);
 

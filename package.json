@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "bs58check": "2.1.2",
-    "eccrypto-js": "5.0.0-beta.5"
+    "eccrypto-js": "5.0.0-beta.7"
   },
   "devDependencies": {
     "@types/jest": "25.1.1",

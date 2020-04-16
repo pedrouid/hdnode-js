@@ -1,11 +1,4 @@
-import { isNode, nodeSha256, fallbackSha256 } from 'eccrypto-js';
-
-function sha256Sync(buf) {
-  if (isNode()) {
-    return nodeSha256(buf);
-  }
-  return fallbackSha256(buf);
-}
+import { sha256Sync } from 'eccrypto-js';
 
 export function normalize(str?: string): string {
   return (str || '').normalize('NFKD');
