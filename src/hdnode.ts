@@ -2,7 +2,7 @@ import { randomBytes } from 'eccrypto-js';
 
 import HDKey from './lib/hdkey';
 import { entropyToMnemonic } from './lib/bip39';
-import { LENGTH_16 } from './helpers';
+import { LENGTH_16, ERROR_PUBLIC_KEY_ONLY } from './helpers';
 
 export class HDNode {
   public static createRandom(): HDNode {
@@ -30,7 +30,7 @@ export class HDNode {
 
   public privateExtendedKey(): string {
     if (!this.hdKey?.privateExtendedKey) {
-      throw new Error('This is a public key only wallet');
+      throw new Error(ERROR_PUBLIC_KEY_ONLY);
     }
     return this.hdKey?.privateExtendedKey;
   }
